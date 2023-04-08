@@ -11,7 +11,7 @@
 #include <string.h>
 
 
-int compare_i64(int64_t left, int64_t right) {
+int compare_i64(int64_t *left, int64_t *right) {
   if (left < right) {
     return -1;
   }
@@ -57,7 +57,7 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     // Implement qsort
   }
   else {
-    mergeSort(arr, begin, middle, threshold);
+    merge_sort(arr, begin, middle, threshold);
     // pid_t pid = fork();
     // if (pid == -1) {
     //   fprintf(stderr, "Error");
@@ -67,10 +67,10 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
       
     // }
 
-    mergeSort(arr, middle + 1, end, threshold);
+    merge_sort(arr, middle + 1, end, threshold);
 
-    uint64_t temparr[end + 1];
-    merge(arr, begin, middle, end, *temparr);
+    int64_t temparr[end + 1];
+    merge(arr, begin, middle, end, temparr);
     arr = temparr;
   }
 }

@@ -11,15 +11,15 @@
 #include <string.h>
 
 
-int compare_i64(int64_t *left, int64_t *right) {
-  if (left < right) {
-    return -1;
-  }
-  else if (left == right) {
-    return 0;
-  }
-  else {
+int compare_i64(const void *a, const void *b) {
+  int64_t l = *(int64_t *) a;
+  int64_t r = *(int64_t *) b;
+  if(l > r) {
     return 1;
+  } else if (l < r) {
+    return -1;
+  } else {
+    return 0;
   }
 }
 
@@ -53,8 +53,9 @@ void merge(int64_t *arr, size_t begin, size_t mid, size_t end, int64_t *temparr)
 void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   // TODO: implement
   int64_t middle = begin + (end - 1) / 2;
-  if (end + 1 == threshold) {
-    // Implement qsort
+  if (end + 1 <= threshold) {
+    size_t size = sizeof(int64_t);
+    qsort(arr, end + 1, size, compare_i64);
   }
   else {
     merge_sort(arr, begin, middle, threshold);
@@ -89,16 +90,42 @@ int main(int argc, char **argv) {
   const char *filename = argv[1];
   char *end;
   size_t threshold = (size_t) strtoul(argv[2], &end, 10);
-  if (end != argv[2] + strlen(argv[2]))
-    /* TODO: report an error (threshold value is invalid) */;
+  if (end != argv[2] + strlen(argv[2])) {
+    /* TODO: report an error (threshold value is invalid) */
+    fprintf(stderr, "Invalid threshold\n");
+    return -1;
+  }
+    
 
   // TODO: open the file
+  int fd = open(filename, O_RDWR);
+  if (fd < 0) {
+    fprintf(stderr, "Failed to open file\n");
+    return -1;
+  }  
 
   // TODO: use fstat to determine the size of the file
+  struct stat statbuf;
+  int rc = fstat(fd, &statbuf);
+  if (rc != 0) {
+    fprintf(stderr, "fstat failed\n");
+    return -1;
+  }
+
+  size_t file_size_in_bytes = statbuf.st_size;
 
   // TODO: map the file into memory using mmap
+   int64_t *data = mmap(NULL, file_size_in_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  close(fd);
+
+  if (data == MAP_FAILED) {
+      fprintf(stderr, "MMap failed\n");
+      return -1;
+  }
+
 
   // TODO: sort the data!
+  merge_sort(data, 0, length(data), threshold)
 
   // TODO: unmap and close the file
 

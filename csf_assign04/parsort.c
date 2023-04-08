@@ -125,7 +125,8 @@ int main(int argc, char **argv) {
 
 
   // TODO: sort the data!
-  merge_sort(data, 0, length(data), threshold)
+  size_t length = file_size_in_bytes/8;
+  merge_sort(data, 0, length, threshold);
 
   // TODO: unmap and close the file
 

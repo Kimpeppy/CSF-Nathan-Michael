@@ -10,6 +10,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+int compare_i64(int64_t left, int64_t right) {
+  if (left < right) {
+    return -1;
+  }
+  else if (left == right) {
+    return 0;
+  }
+  else {
+    return 1;
+  }
+}
+
 // Merge the elements in the sorted ranges [begin, mid) and [mid, end),
 // copying the result into temparr.
 void merge(int64_t *arr, size_t begin, size_t mid, size_t end, int64_t *temparr) {
@@ -39,10 +52,34 @@ void merge(int64_t *arr, size_t begin, size_t mid, size_t end, int64_t *temparr)
 
 void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   // TODO: implement
+  int64_t middle = begin + (end - 1) / 2;
+  if (end + 1 == threshold) {
+    // Implement qsort
+  }
+  else {
+    mergeSort(arr, begin, middle, threshold);
+    // pid_t pid = fork();
+    // if (pid == -1) {
+    //   fprintf(stderr, "Error");
+    //   return;
+    // }
+    // else if (pid == 0) {
+      
+    // }
+
+    mergeSort(arr, middle + 1, end, threshold);
+
+    uint64_t temparr[end + 1];
+    merge(arr, begin, middle, end, *temparr);
+    arr = temparr;
+  }
 }
+
+
 
 int main(int argc, char **argv) {
   // check for correct number of command line arguments
+
   if (argc != 3) {
     fprintf(stderr, "Usage: %s <filename> <sequential threshold>\n", argv[0]);
     return 1;

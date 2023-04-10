@@ -90,6 +90,85 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     merge(arr, begin, middle, end, temparr);
     arr = temparr;
   }
+
+  /*
+   pid_t pidLeft = fork();
+    if(pidLeft == 0) {
+      int retcode = merge_sort(arr, begin, mid, threshold);
+      exit(retcode);
+    }
+
+
+    if(pidLeft == -1) {
+      //print error
+      fprintf(stderr, "Child process couldn't be created");
+      return -1;
+    }
+
+
+    pid_t pidRight = fork();
+    if(pidLeft == 0) {
+      int retcode = merge_sort(arr, mid, end, threshold);
+      exit(retcode);
+    }
+
+
+    if(pidRight == -1) {
+      //print error
+      fprintf(stderr, "Child process couldn't be created");
+      return -1;
+    }
+
+
+    int wstatusLeft;
+    pid_t actual_pidLeft = waitpid(pidLeft, &wstatusLeft, 0);
+    if(actual_pidLeft == -1) {
+      fprintf(stderr, "error!");
+    }
+
+
+    if(!WIFEXITED(wstatusLeft)) {
+    // subprocess crashed, was interrupted, or did not exit normally
+    // handle as error
+    }
+
+
+    if (WEXITSTATUS(wstatusLeft) != 0) {
+    // subprocess returned a non-zero exit code
+    // if following standard UNIX conventions, this is also an error
+    }
+
+
+    int wstatusRight;
+    pid_t actual_pidRight = waitpid(pidRight, &wstatusRight, 0);
+    if(actual_pidRight == -1) {
+      fprintf(stderr, "error!");
+    }
+
+
+    if(!WIFEXITED(wstatusRight)) {
+    // subprocess crashed, was interrupted, or did not exit normally
+    // handle as error
+    }
+
+
+    if (WEXITSTATUS(wstatusRight) != 0) {
+    // subprocess returned a non-zero exit code
+    // if following standard UNIX conventions, this is also an error
+    }
+
+
+    size_t length = end - begin;
+    int64_t *tempArr = malloc(length << 3);
+    merge(arr, begin, mid, end, tempArr);
+
+
+    memcpy(arr + begin, tempArr, length << 3); //length = begin - end
+
+
+  }
+
+  */
 }
 
 

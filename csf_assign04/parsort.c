@@ -68,6 +68,10 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
       fprintf(stderr, "Fork failed!\n");
       exit(1);
     }
+    else {
+      int status;
+      waitpid(pid, &status, 0);
+    }
     pid = fork();
     if(pid == 0) {
       merge_sort(arr, begin, middle, threshold);
@@ -76,6 +80,10 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     else if (pid == -1) {
       fprintf(stderr, "Fork failed!\n");
       exit(1);
+    }
+    else {
+      int status;
+      waitpid(pid, &status, 0);
     }
 
     int64_t temparr[end + 1];

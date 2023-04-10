@@ -123,13 +123,17 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     int wstatusLeft;
     pid_t actual_pidLeft = waitpid(pidLeft, &wstatusLeft, 0);
     if(actual_pidLeft == -1) {
-      fprintf(stderr, "error!");
+      fprintf(stderr, "waitpid failure!");
+      exit(1); //will return 1
     }
 
 
     if(!WIFEXITED(wstatusLeft)) {
     // subprocess crashed, was interrupted, or did not exit normally
     // handle as error
+      fprintf(failed subprocss!!");
+      exit(1); //will return 1
+
     }
 
 
@@ -164,8 +168,6 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
 
 
     memcpy(arr + begin, tempArr, length << 3); //length = begin - end
-
-
   }
 
   */

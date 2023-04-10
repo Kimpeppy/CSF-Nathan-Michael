@@ -59,16 +59,24 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   }
   else {
     merge_sort(arr, begin, middle, threshold);
-    // pid_t pid = fork();
-    // if (pid == -1) {
-    //   fprintf(stderr, "Error");
-    //   return;
-    // }
-    // else if (pid == 0) {
-      
-    // }
-
-    merge_sort(arr, middle + 1, end, threshold);
+    pid_t pid = fork();
+    if(pid == 0) {
+      merge_sort(arr, begin, middle, threshold);
+      exit(0);
+    }
+    else if (pid == -1) {
+      fprintf(stderr, "Fork failed!\n");
+      exit(1);
+    }
+    pid = fork();
+    if(pid == 0) {
+      merge_sort(arr, begin, middle, threshold);
+      exit(0);
+    }
+    else if (pid == -1) {
+      fprintf(stderr, "Fork failed!\n");
+      exit(1);
+    }
 
     int64_t temparr[end + 1];
     merge(arr, begin, middle, end, temparr);

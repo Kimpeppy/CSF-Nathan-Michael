@@ -51,7 +51,7 @@ void merge(int64_t *arr, size_t begin, size_t mid, size_t end, int64_t *temparr)
 }
 
 int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
-  
+
   size_t length = end - begin;
   int64_t mid = (begin + end) / 2;
 
@@ -99,27 +99,30 @@ int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     if(!WIFEXITED(wstatusLeft)) {
     // subprocess crashed, was interrupted, or did not exit normally
     // handle as error
-      fprintf(stderr, "failed subprocss!!");
+      fprintf(stderr, "subprocess crashed, was interrupted, or did not exit normally.");
       exit(1); //will return 1
     }
 
     if (WEXITSTATUS(wstatusLeft) != 0) {
-    // subprocess returned a non-zero exit code
-    // if following standard UNIX conventions, this is also an error
+      fprintf(stderr, "subprocess returned an error.");
+      // subprocess returned a non-zero exit code
+      // if following standard UNIX conventions, this is also an error
     }
 
     int wstatusRight;
     pid_t actual_pidRight = waitpid(pidRight, &wstatusRight, 0);
     if(actual_pidRight == -1) {
-      fprintf(stderr, "error!");
+      fprintf(stderr, "waitpid failure!");
     }
 
     if(!WIFEXITED(wstatusRight)) {
+      fprintf(stderr, "subprocess crashed, was interrupted, or did not exit normally.");
     // subprocess crashed, was interrupted, or did not exit normally
     // handle as error
     }
 
     if (WEXITSTATUS(wstatusRight) != 0) {
+      fprintf(stderr, "subprocess returned an error");
     // subprocess returned a non-zero exit code
     // if following standard UNIX conventions, this is also an error
     }

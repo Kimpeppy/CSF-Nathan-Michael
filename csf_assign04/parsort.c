@@ -50,7 +50,7 @@ void merge(int64_t *arr, size_t begin, size_t mid, size_t end, int64_t *temparr)
   }
 }
 
-void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
+int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   // TODO: implement
   int64_t middle = begin + (end - 1) / 2;
   if (end + 1 <= threshold) {
@@ -107,7 +107,7 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
 
 
     pid_t pidRight = fork();
-    if(pidLeft == 0) {
+    if(pidRight == 0) {
       int retcode = merge_sort(arr, mid, end, threshold);
       exit(retcode);
     }

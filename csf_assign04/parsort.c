@@ -51,47 +51,15 @@ void merge(int64_t *arr, size_t begin, size_t mid, size_t end, int64_t *temparr)
 }
 
 int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
-  // TODO: implement
-  int64_t middle = begin + (end - 1) / 2;
-  if (end + 1 <= threshold) {
+  
+  size_t length = end - begin;
+  int64_t mid = (begin + end) / 2;
+
+  if (length <= threshold) {
     size_t size = sizeof(int64_t);
-    qsort(arr, end + 1, size, compare_i64);
+    qsort(arr+begin, (end-begin), size, compare_i64);
   }
   else {
-    merge_sort(arr, begin, middle, threshold);
-    pid_t pid = fork();
-    if(pid == 0) {
-      merge_sort(arr, begin, middle, threshold);
-      exit(0);
-    }
-    else if (pid == -1) {
-      fprintf(stderr, "Fork failed!\n");
-      exit(1);
-    }
-    else {
-      int status;
-      waitpid(pid, &status, 0);
-    }
-    pid = fork();
-    if(pid == 0) {
-      merge_sort(arr, begin, middle, threshold);
-      exit(0);
-    }
-    else if (pid == -1) {
-      fprintf(stderr, "Fork failed!\n");
-      exit(1);
-    }
-    else {
-      int status;
-      waitpid(pid, &status, 0);
-    }
-
-    int64_t temparr[end + 1];
-    merge(arr, begin, middle, end, temparr);
-    arr = temparr;
-  }
-
-  /*
    pid_t pidLeft = fork();
     if(pidLeft == 0) {
       int retcode = merge_sort(arr, begin, mid, threshold);
@@ -131,17 +99,14 @@ int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     if(!WIFEXITED(wstatusLeft)) {
     // subprocess crashed, was interrupted, or did not exit normally
     // handle as error
-      fprintf(failed subprocss!!");
+      fprintf(stderr, "failed subprocss!!");
       exit(1); //will return 1
-
     }
-
 
     if (WEXITSTATUS(wstatusLeft) != 0) {
     // subprocess returned a non-zero exit code
     // if following standard UNIX conventions, this is also an error
     }
-
 
     int wstatusRight;
     pid_t actual_pidRight = waitpid(pidRight, &wstatusRight, 0);
@@ -149,28 +114,23 @@ int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
       fprintf(stderr, "error!");
     }
 
-
     if(!WIFEXITED(wstatusRight)) {
     // subprocess crashed, was interrupted, or did not exit normally
     // handle as error
     }
-
 
     if (WEXITSTATUS(wstatusRight) != 0) {
     // subprocess returned a non-zero exit code
     // if following standard UNIX conventions, this is also an error
     }
 
-
-    size_t length = end - begin;
+    
     int64_t *tempArr = malloc(length << 3);
     merge(arr, begin, mid, end, tempArr);
 
-
     memcpy(arr + begin, tempArr, length << 3); //length = begin - end
   }
-
-  */
+  return 0;
 }
 
 
@@ -234,3 +194,39 @@ int main(int argc, char **argv) {
   }
   return 0;
 }
+
+
+
+ /*
+merge_sort(arr, begin, middle, threshold);
+    pid_t pid = fork();
+    if(pid == 0) {
+      merge_sort(arr, begin, middle, threshold);
+      exit(0);
+    }
+    else if (pid == -1) {
+      fprintf(stderr, "Fork failed!\n");
+      exit(1);
+    }
+    else {
+      int status;
+      waitpid(pid, &status, 0);
+    }
+    pid = fork();
+    if(pid == 0) {
+      merge_sort(arr, begin, middle, threshold);
+      exit(0);
+    }
+    else if (pid == -1) {
+      fprintf(stderr, "Fork failed!\n");
+      exit(1);
+    }
+    else {
+      int status;
+      waitpid(pid, &status, 0);
+    }
+
+    int64_t temparr[end + 1];
+    merge(arr, begin, middle, end, temparr);
+    arr = temparr;
+  */

@@ -63,13 +63,13 @@ int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
    pid_t pidLeft = fork();
     if(pidLeft == 0) {
       int retcode = merge_sort(arr, begin, mid, threshold);
-      exit(retcode);
+      exit(retcode); //since these two are children, they need to exit
     }
 
 
     if(pidLeft == -1) {
       //print error
-      fprintf(stderr, "Child process couldn't be created");
+      fprintf(stderr, "Error: Left child process couldn't be created");
       return -1;
     }
 
@@ -77,13 +77,13 @@ int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     pid_t pidRight = fork();
     if(pidRight == 0) {
       int retcode = merge_sort(arr, mid, end, threshold);
-      exit(retcode);
+      exit(retcode); //since these two are children, they need to exit
     }
 
 
     if(pidRight == -1) {
       //print error
-      fprintf(stderr, "Child process couldn't be created");
+      fprintf(stderr, "Error: Right child process couldn't be created");
       return -1;
     }
 
@@ -91,20 +91,21 @@ int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     int wstatusLeft;
     pid_t actual_pidLeft = waitpid(pidLeft, &wstatusLeft, 0);
     if(actual_pidLeft == -1) {
-      fprintf(stderr, "waitpid failure!");
-      exit(1); //will return 1
+      fprintf(stderr, "Error: Left side waitpid failure!");
+      return -1; //will return 1
     }
 
 
     if(!WIFEXITED(wstatusLeft)) {
     // subprocess crashed, was interrupted, or did not exit normally
     // handle as error
-      fprintf(stderr, "subprocess crashed, was interrupted, or did not exit normally.");
-      exit(1); //will return 1
+      fprintf(stderr, "Error: Left subprocess crashed, was interrupted, or did not exit normally.");
+      return -1; //will return 1
     }
 
     if (WEXITSTATUS(wstatusLeft) != 0) {
-      fprintf(stderr, "subprocess returned an error.");
+      fprintf(stderr, "Error: subprocess returned an error.");
+      return -1;
       // subprocess returned a non-zero exit code
       // if following standard UNIX conventions, this is also an error
     }
@@ -112,17 +113,20 @@ int merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     int wstatusRight;
     pid_t actual_pidRight = waitpid(pidRight, &wstatusRight, 0);
     if(actual_pidRight == -1) {
-      fprintf(stderr, "waitpid failure!");
+      fprintf(stderr, "Error: Right side waitpid failure!");
+      return -1;
     }
 
     if(!WIFEXITED(wstatusRight)) {
-      fprintf(stderr, "subprocess crashed, was interrupted, or did not exit normally.");
+      fprintf(stderr, "Error: Right subprocess crashed, was interrupted, or did not exit normally.");
+      return -1;
     // subprocess crashed, was interrupted, or did not exit normally
     // handle as error
     }
 
     if (WEXITSTATUS(wstatusRight) != 0) {
-      fprintf(stderr, "subprocess returned an error");
+      fprintf(stderr, "Error: Right subprocess returned an error");
+      return -1;
     // subprocess returned a non-zero exit code
     // if following standard UNIX conventions, this is also an error
     }
@@ -152,7 +156,7 @@ int main(int argc, char **argv) {
   size_t threshold = (size_t) strtoul(argv[2], &end, 10);
   if (end != argv[2] + strlen(argv[2])) {
     /* TODO: report an error (threshold value is invalid) */
-    fprintf(stderr, "Invalid threshold\n");
+    fprintf(stderr, "Error: Invalid threshold\n");
     return -1;
   }
     
@@ -160,7 +164,7 @@ int main(int argc, char **argv) {
   // TODO: open the file
   int fd = open(filename, O_RDWR);
   if (fd < 0) {
-    fprintf(stderr, "Failed to open file\n");
+    fprintf(stderr, "Error: Failed to open file\n");
     return -1;
   }  
 
@@ -168,7 +172,7 @@ int main(int argc, char **argv) {
   struct stat statbuf;
   int rc = fstat(fd, &statbuf);
   if (rc != 0) {
-    fprintf(stderr, "fstat failed\n");
+    fprintf(stderr, "Error: fstat failed\n");
     return -1;
   }
 
@@ -179,23 +183,23 @@ int main(int argc, char **argv) {
   close(fd);
 
   if (data == MAP_FAILED) {
-      fprintf(stderr, "MMap failed\n");
+      fprintf(stderr, "Error: MMap failed\n");
       return -1;
   }
 
 
   // TODO: sort the data!
   size_t length = file_size_in_bytes/8;
-  merge_sort(data, 0, length, threshold);
-
+  int error_code;
+  error_code = merge_sort(data, 0, length, threshold);
   // TODO: unmap and close the file
   int unmap = munmap(data, file_size_in_bytes);
   close(fd); //<this might be redundant
   
   if(unmap != 0) {
-    fprintf(stderr, "munmap failed\n");
+    fprintf(stderr, "Error: munmap failed\n");
   }
-  return 0;
+  return error_code;
 }
 
 

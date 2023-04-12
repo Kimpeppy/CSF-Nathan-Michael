@@ -20,11 +20,17 @@ int main(int argc, char **argv) {
 
   Connection conn;
 
+
   // TODO: connect to server
+  conn.m_fd = open_clientfd(server_hostname, server_port);
+  conn = Connection(m_fd);
 
   // TODO: send rlogin and join messages (expect a response from
   //       the server for each one)
-
+  Message m = Message(TAG_RLOGIN, "");
+  if(conn.send(m)) {
+    //do something
+  }
   // TODO: loop waiting for messages from server
   //       (which should be tagged with TAG_DELIVERY)
 

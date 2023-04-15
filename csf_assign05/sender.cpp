@@ -34,10 +34,40 @@ int main(int argc, char **argv) {
   Message ok = Message(TAG_OK, "server login success");
   // TODO: loop reading commands from user, sending messages to
   //       server as appropriate
+  std::string x;
+  std::string slash;
+  std::string command;
+  int col;
+  while(cin >> x) {
+    slash = x.substr(0, 1);
+    if (slash == "/") {
+      command = (x.substr(1, x.length()));
+      handleCommand(command);
+    }
+    else {
 
+    }
+
+
+
+  }
 
 
   return 0;
 }
 
+void handleCommand(std::string command) {
+  if (command == "join") {
+
+  }
+  else if (command == "leave") {
+
+  }
+  else if (command == "quit") {
+
+  }
+  else {
+    
+  }
+}
 

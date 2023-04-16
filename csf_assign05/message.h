@@ -20,6 +20,24 @@ struct Message {
     : tag(tag), data(data) { }
 
   // TODO: you could add helper functions
+  char *messageString() {
+    const char *tagString = tag.c_str();
+    const char *dataString = data.c_str();
+
+    char *payload;
+    strcpy(payload, tagString);
+    strcat(payload, ":");
+    strcat(payload, dataString);
+
+    return payload;
+
+  }
+  size_t payloadSize() {
+    // Return the tag and data length total
+    // Also add in the colon and the null terminator
+    return tag.length() + 1 + data.length() + 1;
+
+  }
 };
 
 // standard message tags (note that you don't need to worry about

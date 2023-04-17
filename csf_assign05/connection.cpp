@@ -54,9 +54,9 @@ bool Connection::send(const Message &msg) {
   // TODO: send a message
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
-
-  ssize_t check = rio_writen(m_fd, &msg.data, msg.data.length());
-  if (check < -1) {
+  Message message = msg;
+  ssize_t check = rio_writen(m_fd, message.messageString(), message.data.length());
+  if (check <= -1) {
     m_last_result = EOF_OR_ERROR;
     return false;
   }
@@ -70,13 +70,31 @@ bool Connection::receive(Message &msg) {
   // TODO: receive a message, storing its tag and data in msg
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
-  ssize_t check = rio_readn(m_fd, &msg.data, msg.data.length());
-  if (check < -1) {
+
+  char buf[1024];
+  size_t check = rio_readlineb(&m_fdbuf, buf, sizeof(buf));
+  std::string bufString = buf;
+  if (check <= -1) {
     m_last_result = EOF_OR_ERROR;
     return false;
   }
-  else {
-    m_last_result = SUCCESS;
-    return true;
+
+  // If there is no colon, this message is invalid
+  size_t colonLocation = bufString.find(':');
+  if (bufString.find(':') == std::string::npos) {
+    m_last_result = INVALID_MSG;
+    return false;
   }
+
+  // If the read buf's tag does not match the message tag, this message is invalid
+  if (bufString.substr(0, colonLocation) != msg.tag) {
+    m_last_result = INVALID_MSG;
+    return false;
+  }
+
+
+  m_last_result = SUCCESS;
+  return true;
+ 
+
 }

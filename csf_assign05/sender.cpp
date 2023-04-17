@@ -27,23 +27,22 @@ int main(int argc, char **argv) {
   
 
 
-  Connection conn;
+  Connection connection;
+  Message okStatus = Message(TAG_OK, "blah blah blah");
   int fd = open_clientfd(argv[1], argv[2]);
-  if (fd < 0) {
-    Message error = Message(TAG_ERR, "cannot login");
-    Rio_writen(fd, error.messageString(), error.payloadSize());
-    //TODO: replace this with the corresponding way to return the function
-    return 1;
-  }
-  conn.connect(server_hostname, server_port);
-  if(!conn.is_open()) {
-   // Throw error here
-
+  connection.connect(server_hostname, server_port);
+  if(!connection.is_open()) {
+    // TODO: Throw error here and exit code
   }
   
   // TODO: send slogin message
   Message slogin = Message(TAG_SLOGIN, username);
-  Rio_writen(fd, slogin.messageString(), slogin.payloadSize());
+  connection.send(slogin);
+  if (!connection.receive(okStatus)) {
+    // TODO: Handle error for not logging in and exit code
+    return 1;
+  }
+  
   
   
   // TODO: loop reading commands from user, sending messages to
@@ -52,27 +51,45 @@ int main(int argc, char **argv) {
   std::string slash;
   std::string command;
   int col;
-  while(cin >> x) {
-    slash = x.substr(0, 1);
-    if (slash == "/") {
-      command = (x.substr(1, x.length()));
-      handleCommand(fd, command);
+  // while(cin >> x) {
+  //   slash = x.substr(0, 1);
+  //   if (slash == "/") {
+  //     command = (x.substr(1, x.length()));
+      
+      
+  //   }
+  //   else {
+  //     Message message = Message(TAG_SENDALL, x);
+  //     Rio_writen(fd, message.messageString(), message.payloadSize());
+      
+  //   }
+
+
+
+  // }
+
+  try {
+    while(cin >> x) {
+      slash = x.substr(0, 1);
+      if (slash == "/") {
+        command = x.substr(1, x.length());
+      }
+      else {
+        Message message = Message(TAG_SENDALL, x);
+        connection.send(message);
+      }
     }
-    else {
-      Message message = Message(TAG_SENDALL, x);
-      Rio_writen(fd, message.messageString(), message.payloadSize());
-    }
-
-
-
+  } catch (const std::out_of_range& orr) {
+    
   }
 
 
   return 0;
 }
 
-// Temp function, we may need to move this into the while loop
-void handleCommand(int fd, std::string command) {
+
+// Return false to terminate loop
+bool handleCommand(int fd, std::string command, Connection connection) {
   if (command == "join") {
     // You need to get the party's name
     try {
@@ -86,6 +103,8 @@ void handleCommand(int fd, std::string command) {
       // TODO: somehow get the user into a room
     } catch (const std::out_of_range& orr) {
       // Print need party error and quit the server
+
+      return false;
     }
     
 
@@ -103,6 +122,7 @@ void handleCommand(int fd, std::string command) {
       Message quitClient = Message(TAG_QUIT, "quit client");
       Rio_writen(fd, quitClient.messageString(), quitClient.payloadSize());
       // TODO: exit the while loop
+      return false;
 
 
 
@@ -116,5 +136,6 @@ void handleCommand(int fd, std::string command) {
   else {
     // TODO: handle error with false commands
   }
+  return true;
 }
 

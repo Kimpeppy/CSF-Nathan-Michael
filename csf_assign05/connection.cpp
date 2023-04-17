@@ -71,30 +71,35 @@ bool Connection::receive(Message &msg) {
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
 
-  char buf[1024];
+  char buf[msg.MAX_LEN + 1];
   size_t check = rio_readlineb(&m_fdbuf, buf, sizeof(buf));
-  std::string bufString = buf;
   if (check <= -1) {
     m_last_result = EOF_OR_ERROR;
     return false;
   }
 
+  buf[msg.MAX_LEN + 1] = '\0';
+  std::string bufString(buf);
+
   // If there is no colon, this message is invalid
   size_t colonLocation = bufString.find(':');
-  if (bufString.find(':') == std::string::npos) {
+  if (colonLocation == std::string::npos) {
     m_last_result = INVALID_MSG;
     return false;
   }
 
-  // If the read buf's tag does not match the message tag, this message is invalid
-  if (bufString.substr(0, colonLocation) != msg.tag) {
-    m_last_result = INVALID_MSG;
-    return false;
+  std::string tag = bufString.substr(0, colonLocation);
+  std::string payload = bufString.substr(colonLocation + 1); //colonpos to n
+
+  if(tag == TAG_OK) {
+     m_last_result = SUCCESS;
+    return true; 
+  } else if (tag == TAG_DELIVERY) {
+    //MAKE MESSAGE PROPER
+     m_last_result = SUCCESS;
+    return true; 
+  } else if (tag == TAG_ERR) {
+    /*
+    print the error payload to stderr/cerr and exit with a non-zero exit code.
+    */
   }
-
-
-  m_last_result = SUCCESS;
-  return true;
- 
-
-}

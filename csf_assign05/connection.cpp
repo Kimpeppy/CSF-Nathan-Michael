@@ -21,18 +21,16 @@ Connection::Connection(int fd)
 
 void Connection::connect(const std::string &hostname, int port) {
   // TODO: call open_clientfd to connect to the server
+  
   std::string p = std::to_string(port);
   const char* portString = p.c_str();
-  const char* hostNameString = p.c_str();
+  const char* hostNameString = hostname.c_str();
+  
   int fd = open_clientfd(hostNameString, portString);
   // TODO: call rio_readinitb to initialize the rio_t object
   rio_readinitb(&m_fdbuf, fd);
   m_fd = fd;
-
-  // p = toString(port);
-  // port_cstr = c_str(p); //TEST THIS REALLY WORKS
-  // int fd = open_clientfd(hostname, port_cstr); //wrong since not using a pointer
-  // rio_readinitb(m_fdbuf, fd);
+  
 }
 
 Connection::~Connection() {
@@ -57,8 +55,7 @@ bool Connection::send(const Message &msg) {
   // make sure that m_last_result is set appropriately
   std::string message = msg.tag + ":" + msg.data;
   const char* cMessage = message.c_str();
-  
-  ssize_t check = rio_writen(m_fd, cMessage, sizeof(cMessage));
+  ssize_t check = rio_writen(m_fd, cMessage, message.length() + 1);
   if (check <= -1) {
     m_last_result = EOF_OR_ERROR;
     return false;
@@ -83,6 +80,8 @@ bool Connection::receive(Message &msg) {
 
   buf[msg.MAX_LEN + 1] = '\0';
   std::string bufString(buf);
+
+  std::cout << bufString << std::endl;
 
   // If there is no colon, this message is invalid
   size_t colonLocation = bufString.find(':');

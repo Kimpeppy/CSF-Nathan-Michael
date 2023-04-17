@@ -22,7 +22,9 @@ int main(int argc, char **argv) {
 
 
   // TODO: connect to server
+  
   conn.connect(server_hostname, server_port);
+  
   if (!conn.is_open()) {
     std::cerr << "not connected" << std::endl;
     return 1;
@@ -59,6 +61,7 @@ int main(int argc, char **argv) {
   // TODO: loop waiting for messages from server
   //       (which should be tagged with TAG_DELIVERY)
   //
+  
   
   bool continueLoop; //should i check if (message.tag == TAG_DELIVERY) 
   std::string roomReceiver;

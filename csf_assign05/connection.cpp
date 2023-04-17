@@ -96,20 +96,18 @@ bool Connection::receive(Message &msg) {
   msg.tag = tag;
   msg.data = payload;
 
-  if(tag == TAG_OK) {
-     m_last_result = SUCCESS;
-    return true; 
-  } else if (tag == TAG_DELIVERY) {
-    //MAKE MESSAGE PROPER
-    // std::cerr << payload << std::endl;
-     m_last_result = SUCCESS;
-    return true; 
-  } else if (tag == TAG_ERR) {
-    /*
-    print the error payload to stderr/cerr and exit with a non-zero exit code.
-    */
-  //  std::cerr << payload << std::endl;
-   m_last_result = EOF_OR_ERROR;
-   return false;
+
+  return syn_ack(tag);
    
   }
+
+bool Connection::syn_ack(std::string tag) {
+  if(tag == TAG_OK) {
+    m_last_result = SUCCESS; //message format is message_text
+    return true; 
+  } else if (tag == TAG_ERR) {
+    m_last_result = EOF_OR_ERROR; //message format is message_text
+    return false;
+  }
+}
+

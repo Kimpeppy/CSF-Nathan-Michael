@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
     std::cerr << "cannot login" << std::endl;
     return 1;
   }
-  if (!conn.receive(message)) {
-    std::cerr << "did not recieve comformation for logging in" << std::endl;
+  if (!conn.receive(message)) { //if server returns err for rlogin, print error payload to cerr
+    std::cerr << message.data << std::endl;
     return 1;
   }
 
@@ -49,8 +49,8 @@ int main(int argc, char **argv) {
     std::cerr << "cannot join room" << std::endl;
     return 1;
   }
-  if (!conn.receive(message)) {
-    std::cerr << "did not recieve comformation for joining room" << std::endl;
+  if (!conn.receive(message)) { //if server returns err for join, print error payload to cerr
+    std::cerr << message.data << std::endl;
     return 1;
   }
   std::cout << username << "joins" << room_name << std::endl;
@@ -59,7 +59,8 @@ int main(int argc, char **argv) {
   // TODO: loop waiting for messages from server
   //       (which should be tagged with TAG_DELIVERY)
   //
-  bool continueLoop;
+  
+  bool continueLoop; //should i check if (message.tag == TAG_DELIVERY) 
   std::string roomReceiver;
   std::string sender;
   std::string userMessage;
@@ -87,7 +88,5 @@ int main(int argc, char **argv) {
 
 
   }
-
-
-  return 0;
-}
+    return 0;
+  }

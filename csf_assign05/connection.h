@@ -43,6 +43,10 @@ public:
 
   Result get_last_result() const { return m_last_result; }
 
+  bool syn_ack(std::string tag);
+
+  bool receiver_tag_handler(std::string tag);
+
 private:
   // prohibit value semantics
   Connection(const Connection &);

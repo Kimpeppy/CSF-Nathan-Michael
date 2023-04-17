@@ -69,9 +69,10 @@ int main(int argc, char **argv) {
   while (continueLoop == true) {
     continueLoop = conn.receive(message);
     if (!continueLoop) {
-      std::cerr << "did not recieve message properly" << std::endl;
+      std::cerr << "did not recieve message properly" << std::endl; 
       continue;
     }
+    
     colon1 = message.data.find(':');
     colon2 = message.data.find(':', colon1 + 1);
 

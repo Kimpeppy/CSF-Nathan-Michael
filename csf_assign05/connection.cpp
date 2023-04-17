@@ -15,9 +15,8 @@ Connection::Connection()
 Connection::Connection(int fd)
   : m_fd(fd)
   , m_last_result(SUCCESS) {
-    rio_readinitb(&m_fdbuf, m_fd);
   // TODO: call rio_readinitb to initialize the rio_t object
-  rio_readinitb(&m_fdbuf, fd);
+  rio_readinitb(&m_fdbuf, m_fd);
 }
 
 void Connection::connect(const std::string &hostname, int port) {
@@ -28,6 +27,7 @@ void Connection::connect(const std::string &hostname, int port) {
   int fd = open_clientfd(hostNameString, portString);
   // TODO: call rio_readinitb to initialize the rio_t object
   rio_readinitb(&m_fdbuf, fd);
+  m_fd = fd;
 
   // p = toString(port);
   // port_cstr = c_str(p); //TEST THIS REALLY WORKS
@@ -42,7 +42,7 @@ Connection::~Connection() {
 
 bool Connection::is_open() const {
   // TODO: return true if the connection is open
-  return (m_fd > 0);
+  return (m_fd >= 0);
 }
 
 void Connection::close() {
@@ -92,7 +92,8 @@ bool Connection::receive(Message &msg) {
   }
 
   std::string tag = bufString.substr(0, colonLocation);
-  std::string payload = bufString.substr(colonLocation + 1); //colonpos to n
+  std::string payload = bufString.substr(colonLocation + 1); //automatically goes to the end
+
   msg.tag = tag;
   msg.data = payload;
 

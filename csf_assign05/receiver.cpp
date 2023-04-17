@@ -63,18 +63,25 @@ int main(int argc, char **argv) {
   //
   
   
-  bool continueLoop; //should i check if (message.tag == TAG_DELIVERY) 
+  bool continueLoop = true; //should i check if (message.tag == TAG_DELIVERY) 
   std::string roomReceiver;
   std::string sender;
   std::string userMessage;
   size_t colon1;
   size_t colon2;
-  while (continueLoop == true) {
+  while (continueLoop) {
     continueLoop = conn.receive(message);
     if (!continueLoop) {
       std::cerr << "did not recieve message properly" << std::endl; 
       continue;
     }
+
+    /*
+    if (message.tag != TAG_DELIVERY) {
+      std::cerr << "Received message with unexpected tag: " << message.tag << std::endl;
+      continue;
+    }
+    */
     
     colon1 = message.data.find(':');
     colon2 = message.data.find(':', colon1 + 1);

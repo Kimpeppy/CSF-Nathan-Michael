@@ -23,16 +23,70 @@ int main(int argc, char **argv) {
 
   // TODO: connect to server
   conn.connect(server_hostname, server_port);
+  if (!conn.is_open()) {
+    std::cerr << "not connected" << std::endl;
+    return 1;
+  }
+
+
 
   // TODO: send rlogin and join messages (expect a response from
   //       the server for each one)
-  Message m = Message(TAG_RLOGIN, "");
-  if(conn.send(m)) {
-    //wait for the reply~
+  
+  // Try to login
+  Message message = Message(TAG_RLOGIN, username);
+  if (!conn.send(message)) {
+    std::cerr << "cannot login" << std::endl;
+    return 1;
   }
+  if (!conn.receive(message)) {
+    std::cerr << "did not recieve comformation for logging in" << std::endl;
+    return 1;
+  }
+
+  message = Message(TAG_JOIN, room_name);
+  if (!conn.send(message)) {
+    std::cerr << "cannot join room" << std::endl;
+    return 1;
+  }
+  if (!conn.receive(message)) {
+    std::cerr << "did not recieve comformation for joining room" << std::endl;
+    return 1;
+  }
+  std::cout << username << "joins" << room_name << std::endl;
+
+
   // TODO: loop waiting for messages from server
   //       (which should be tagged with TAG_DELIVERY)
-  //r
+  //
+  bool continueLoop;
+  std::string roomReceiver;
+  std::string sender;
+  std::string userMessage;
+  size_t colon1;
+  size_t colon2;
+  while (continueLoop == true) {
+    continueLoop = conn.receive(message);
+    if (!continueLoop) {
+      std::cerr << "did not recieve message properly" << std::endl;
+      continue;
+    }
+    colon1 = message.data.find(':');
+    colon2 = message.data.find(':', colon1 + 1);
+
+    roomReceiver = message.data.substr(0, colon1);
+    sender = message.data.substr(colon1, colon2);
+    userMessage = message.data.substr(colon2, message.data.length());
+
+    if (roomReceiver != room_name) {
+      std::cerr << "did not receive from the right room" << std::endl;
+      continue;
+    }
+
+    std::cout << sender << ": " << userMessage << std::endl;
+
+
+  }
 
 
   return 0;

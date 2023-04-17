@@ -1,6 +1,7 @@
 #include <sstream>
 #include <cctype>
 #include <cassert>
+#include <iostream>
 #include "csapp.h"
 #include "message.h"
 #include "connection.h"
@@ -54,8 +55,10 @@ bool Connection::send(const Message &msg) {
   // TODO: send a message
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
-  Message message = msg;
-  ssize_t check = rio_writen(m_fd, message.messageString(), message.data.length());
+  std::string message = msg.tag + ":" + msg.data;
+  const char* cMessage = message.c_str();
+  
+  ssize_t check = rio_writen(m_fd, cMessage, sizeof(cMessage));
   if (check <= -1) {
     m_last_result = EOF_OR_ERROR;
     return false;
@@ -90,16 +93,23 @@ bool Connection::receive(Message &msg) {
 
   std::string tag = bufString.substr(0, colonLocation);
   std::string payload = bufString.substr(colonLocation + 1); //colonpos to n
+  msg.tag = tag;
+  msg.data = payload;
 
   if(tag == TAG_OK) {
      m_last_result = SUCCESS;
     return true; 
   } else if (tag == TAG_DELIVERY) {
     //MAKE MESSAGE PROPER
+    // std::cerr << payload << std::endl;
      m_last_result = SUCCESS;
     return true; 
   } else if (tag == TAG_ERR) {
     /*
     print the error payload to stderr/cerr and exit with a non-zero exit code.
     */
+  //  std::cerr << payload << std::endl;
+   m_last_result = EOF_OR_ERROR;
+   return false;
+   
   }

@@ -57,7 +57,6 @@ bool Connection::send(const Message &msg) {
   const char* cMessage = message.c_str();
   ssize_t check = rio_writen(m_fd, cMessage, message.length() + 1);
   if (check <= -1) {
-    std::cout << "you reachd here!" << std::endl;
     m_last_result = EOF_OR_ERROR;
     return false;
   }
@@ -95,17 +94,17 @@ bool Connection::receive(Message &msg) {
   msg.tag = tag;
   msg.data = payload;
 
-
-  return true;
+  return syn_ack(msg);
    
   }
 
 bool Connection::syn_ack(Message &msg) {
-  if(tag == TAG_OK) {
+  if(msg.tag == TAG_OK || msg.tag == TAG_DELIVERY) {
     m_last_result = SUCCESS; //message format is message_text
     return true; 
-  } else if (tag == TAG_ERR) {
+  } else if (msg.tag == TAG_ERR) {
     m_last_result = EOF_OR_ERROR; //message format is message_text
+    std::cout << msg.data;
     return false;
   }
 }

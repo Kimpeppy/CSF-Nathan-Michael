@@ -43,7 +43,7 @@ public:
 
   Result get_last_result() const { return m_last_result; }
 
-  bool syn_ack(std::string tag);
+  bool syn_ack(Message &msg);
 
   bool receiver_tag_handler(Message &msg);
 

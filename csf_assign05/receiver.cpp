@@ -42,20 +42,16 @@ int main(int argc, char **argv) {
     return 1;
   }
   if (!conn.receive(message)) { //if server returns err for rlogin, print error payload to cerr
-    std::cerr << "did not receive message" << std::endl;
     return 1;
   }
 
   message = Message(TAG_JOIN, room_name);
   if (!conn.send(message)) {
-    std::cerr << "cannot join room" << std::endl;
     return 1;
   }
   if (!conn.receive(message)) { //if server returns err for join, print error payload to cerr
-    std::cerr << "line 54" << std::endl;
     return 1;
   }
-  std::cout << username << " joins " << room_name << std::endl;
 
 
   // TODO: loop waiting for messages from server
@@ -72,16 +68,8 @@ int main(int argc, char **argv) {
   while (continueLoop) {
     continueLoop = conn.receive(message);
     if (!continueLoop) {
-      std::cerr << "did not recieve message properly" << std::endl; 
       continue;
     }
-
-    /*
-    if (message.tag != TAG_DELIVERY) {
-      std::cerr << "Received message with unexpected tag: " << message.tag << std::endl;
-      continue;
-    }
-    */
     
     colon1 = message.data.find(':');
     
@@ -92,12 +80,9 @@ int main(int argc, char **argv) {
     sender = message.data.substr(colon1+1, colon2-colon1 - 1);
     userMessage = message.data.substr(colon2 + 1);
 
-    // std::cout << userMessage << std::endl;
-
     if (roomReceiver != room_name) {
       //std::cout << roomReceiver << std::endl;
       //std::cout << room_name << std::endl;
-      std::cerr << "did not receive from the right room" << std::endl;
       continue;
     }
 
@@ -105,5 +90,5 @@ int main(int argc, char **argv) {
 
 
   }
-    return 0;
-  }
+  return 0;
+}

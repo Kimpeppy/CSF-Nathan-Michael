@@ -45,7 +45,7 @@ bool Connection::is_open() const {
 
 void Connection::close() {
   // TODO: close the connection if it is open
-  Close(m_fd);
+  ::close(m_fd); 
   m_fd = -1;
 }
 
@@ -53,10 +53,11 @@ bool Connection::send(const Message &msg) {
   // TODO: send a message
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
-  std::string message = msg.tag + ":" + msg.data;
+  std::string message = msg.tag + ":" + msg.data + "\n";
   const char* cMessage = message.c_str();
   ssize_t check = rio_writen(m_fd, cMessage, message.length() + 1);
   if (check <= -1) {
+    std::cout << "you reachd here!" << std::endl;
     m_last_result = EOF_OR_ERROR;
     return false;
   }
@@ -73,15 +74,13 @@ bool Connection::receive(Message &msg) {
 
   char buf[msg.MAX_LEN + 1];
   size_t check = rio_readlineb(&m_fdbuf, buf, sizeof(buf));
-  if (check <= -1) {
+  if (check < 0) {
     m_last_result = EOF_OR_ERROR;
     return false;
   }
 
   buf[msg.MAX_LEN + 1] = '\0';
   std::string bufString(buf);
-
-  std::cout << bufString << std::endl;
 
   // If there is no colon, this message is invalid
   size_t colonLocation = bufString.find(':');
@@ -97,11 +96,11 @@ bool Connection::receive(Message &msg) {
   msg.data = payload;
 
 
-  return syn_ack(tag);
+  return true;
    
   }
 
-bool Connection::syn_ack(std::string tag) {
+bool Connection::syn_ack(Message &msg) {
   if(tag == TAG_OK) {
     m_last_result = SUCCESS; //message format is message_text
     return true; 

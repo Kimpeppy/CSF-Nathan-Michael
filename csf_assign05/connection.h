@@ -45,7 +45,7 @@ public:
 
   bool syn_ack(std::string tag);
 
-  bool receiver_tag_handler(std::string tag);
+  bool receiver_tag_handler(Message &msg);
 
 private:
   // prohibit value semantics

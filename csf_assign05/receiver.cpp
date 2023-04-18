@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   if (!conn.receive(message)) { //if server returns err for rlogin, print error payload to cerr
-    std::cerr << message.data << std::endl;
+    std::cerr << "did not receive message" << std::endl;
     return 1;
   }
 
@@ -52,10 +52,10 @@ int main(int argc, char **argv) {
     return 1;
   }
   if (!conn.receive(message)) { //if server returns err for join, print error payload to cerr
-    std::cerr << message.data << std::endl;
+    std::cerr << "line 54" << std::endl;
     return 1;
   }
-  std::cout << username << "joins" << room_name << std::endl;
+  std::cout << username << " joins " << room_name << std::endl;
 
 
   // TODO: loop waiting for messages from server
@@ -84,18 +84,24 @@ int main(int argc, char **argv) {
     */
     
     colon1 = message.data.find(':');
+    
     colon2 = message.data.find(':', colon1 + 1);
 
     roomReceiver = message.data.substr(0, colon1);
-    sender = message.data.substr(colon1, colon2);
-    userMessage = message.data.substr(colon2, message.data.length());
+    
+    sender = message.data.substr(colon1+1, colon2-colon1 - 1);
+    userMessage = message.data.substr(colon2 + 1);
+
+    // std::cout << userMessage << std::endl;
 
     if (roomReceiver != room_name) {
+      //std::cout << roomReceiver << std::endl;
+      //std::cout << room_name << std::endl;
       std::cerr << "did not receive from the right room" << std::endl;
       continue;
     }
 
-    std::cout << sender << ": " << userMessage << std::endl;
+    std::cout << sender << ": " << userMessage;
 
 
   }

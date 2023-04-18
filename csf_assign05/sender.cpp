@@ -40,7 +40,6 @@ int main(int argc, char **argv) {
   }
   Message message;
   if (!connection.receive(message)) {
-    std::cerr << "could not receive ok message" << std::endl;
     return 1;
   }
   if (message.tag == TAG_ERR) {
@@ -77,15 +76,10 @@ int main(int argc, char **argv) {
       message = Message(TAG_SENDALL, input);
     }
     if (!connection.send(message)) {
-      std::cerr << "message failed to send" << std::endl;
       exitTrue = false;
     }
     if (!connection.receive(message)) {
-      std::cerr << "message failed to receive" << std::endl;
       exitTrue = false;
-    }
-    if (message.tag == TAG_ERR) {
-      std::cerr << message.data << std::endl;
     }
     if (exitTrue) {
       break;

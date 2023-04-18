@@ -55,7 +55,7 @@ bool Connection::send(const Message &msg) {
   // make sure that m_last_result is set appropriately
   std::string message = msg.tag + ":" + msg.data + "\n";
   const char* cMessage = message.c_str();
-  ssize_t check = rio_writen(m_fd, cMessage, message.length() + 1);
+  ssize_t check = rio_writen(m_fd, cMessage, message.length());
   if (check <= -1) {
     m_last_result = EOF_OR_ERROR;
     return false;
@@ -104,7 +104,7 @@ bool Connection::syn_ack(Message &msg) {
     return true; 
   } else if (msg.tag == TAG_ERR) {
     m_last_result = EOF_OR_ERROR; //message format is message_text
-    std::cout << msg.data;
+    std::cerr << msg.data;
     return false;
   }
 }

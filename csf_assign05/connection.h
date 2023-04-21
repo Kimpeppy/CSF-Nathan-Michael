@@ -47,6 +47,12 @@ public:
 
   bool receiver_tag_handler(Message &msg);
 
+  bool communicate(Message &msg);
+
+  void check_end_loop(Message &msg, std::string input, std::string party, bool exitTrue);
+
+  void receiver_loop(Message &message, std::string room_name);
+
 private:
   // prohibit value semantics
   Connection(const Connection &);

@@ -6,6 +6,7 @@
 #include "message.h"
 #include "connection.h"
 
+using namespace std;
 Connection::Connection()
   : m_fd(-1)
   , m_last_result(SUCCESS) {
@@ -70,7 +71,6 @@ bool Connection::receive(Message &msg) {
   // TODO: receive a message, storing its tag and data in msg
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
-
   char buf[msg.MAX_LEN + 1];
   size_t check = rio_readlineb(&m_fdbuf, buf, sizeof(buf));
   if (check < 0) {
@@ -109,3 +109,66 @@ bool Connection::syn_ack(Message &msg) {
   }
 }
 
+bool Connection::communicate(Message &msg) {
+  if (!send(msg)) {
+    return false;
+  }
+  if (!receive(msg)) {
+    return false;
+  }
+  return true;
+}
+
+void Connection::check_end_loop(Message &message, std::string input, std::string party, bool exitTrue) {
+  while(getline(cin, input)) {
+    if (input.find("/join") != std::string::npos) {
+      party = input.substr(6, input.length());
+      message = Message(TAG_JOIN, party);
+
+    } 
+    else if (input.find("/leave") != std::string::npos) {
+      message = Message(TAG_LEAVE, "leaving room");
+    }
+    else if (input.find("/quit") != std::string::npos) {
+      message = Message(TAG_QUIT, "quitting room");
+      exitTrue = true;
+    }
+    else if (input.find("/") != std::string::npos) {
+      std::cerr << "bad command" << std::endl;
+      continue;
+    }
+    else {
+      message = Message(TAG_SENDALL, input);
+    }
+    if (!communicate(message)) {
+      exitTrue = false;
+    }
+    if (exitTrue) {
+      break;
+    }
+  }
+}
+
+void Connection::receiver_loop(Message &message, std::string room_name) {
+   bool continueLoop = true;
+   std::string roomReceiver;
+    std::string sender;
+    std::string userMessage;
+    size_t colon1;
+    size_t colon2;
+   while (continueLoop) {
+    continueLoop = receive(message);
+    if (!continueLoop) {
+      continue;
+    }
+    colon1 = message.data.find(':'); 
+    colon2 = message.data.find(':', colon1 + 1);
+    roomReceiver = message.data.substr(0, colon1); 
+    sender = message.data.substr(colon1+1, colon2-colon1 - 1);
+    userMessage = message.data.substr(colon2 + 1);
+    if (roomReceiver != room_name) {
+      continue;
+    }
+    std::cout << sender << ": " << userMessage;
+  }
+}

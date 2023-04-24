@@ -7,6 +7,7 @@
 Room::Room(const std::string &room_name)
   : room_name(room_name) {
   // TODO: initialize the mutex
+  
 }
 
 Room::~Room() {

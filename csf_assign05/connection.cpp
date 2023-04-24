@@ -150,13 +150,13 @@ void Connection::check_end_loop(Message &message, std::string input, std::string
 }
 
 void Connection::receiver_loop(Message &message, std::string room_name) {
-   bool continueLoop = true;
-   std::string roomReceiver;
-    std::string sender;
-    std::string userMessage;
-    size_t colon1;
-    size_t colon2;
-   while (continueLoop) {
+  bool continueLoop = true;
+  std::string roomReceiver;
+  std::string sender;
+  std::string userMessage;
+  size_t colon1;
+  size_t colon2;
+  while (continueLoop) {
     continueLoop = receive(message);
     if (!continueLoop) {
       continue;

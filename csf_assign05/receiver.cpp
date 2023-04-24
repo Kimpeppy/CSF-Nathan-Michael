@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
   }
   Message message = Message(TAG_RLOGIN, username);
   if(!conn.communicate(message)) {
-    std::cerr << "cannot login" << std::endl;
     return 1;
   }
   message = Message(TAG_JOIN, room_name);

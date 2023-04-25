@@ -49,7 +49,7 @@ void *worker(void *arg) {
   //       separate helper functions for each of these possibilities
   //       is a good idea)
   if (message.tag == TAG_RLOGIN) {
-    chat_with_receiver(connection, room_name);
+    chat_with_receiver(connection);
   }
 
   else if (message.tag == TAG_SLOGIN) {
@@ -116,22 +116,23 @@ void Server::handle_client_requests() {
 Room *Server::find_or_create_room(const std::string &room_name) {
   // TODO: return a pointer to the unique Room object representing
   //       the named chat room, creating a new one if necessary
-  
+  if (m_rooms.find(room_name) != m_rooms.end()) {
+    Room *room = new Room(room_name);
+    m_rooms[room_name] = room;
+  }
+  return m_rooms[room_name];
+
 }
 
 struct ConnInfo {
   int clientfd;
+  Room *room;
 };
 
 void chat_with_sender(Connection *connection) {
-  std::string input;
-  std::string party;
-  bool exitTrue = false;
-  Message message;
-  connection->check_end_loop(message, input, party, exitTrue);
+
 }
 
-void chat_with_receiver(Connection *connection, std::string room_name) {
-  Message message;
-  connection->receiver_loop(message, room_name);
+void chat_with_receiver(Connection *connection) {
+  
 }

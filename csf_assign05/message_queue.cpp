@@ -4,17 +4,22 @@
 
 MessageQueue::MessageQueue() {
   // TODO: initialize the mutex and the semaphore
+  int mcreate = pthread_mutex_init(&m_lock, nullptr);
+  int screate = sem_init(&m_avail, 0, 0);
 }
 
 MessageQueue::~MessageQueue() {
   // TODO: destroy the mutex and the semaphore
+  int mdestroy = pthread_mutex_destroy(&m_lock);
+  int sdestroy = sem_destroy(&m_avail);
 }
 
 void MessageQueue::enqueue(Message *msg) {
   // TODO: put the specified message on the queue
-
+  m_messages.push_front(msg);
   // be sure to notify any thread waiting for a message to be
   // available by calling sem_post
+  sem_post(&m_avail);
 }
 
 Message *MessageQueue::dequeue() {
@@ -31,8 +36,11 @@ Message *MessageQueue::dequeue() {
 
   // TODO: call sem_timedwait to wait up to 1 second for a message
   //       to be available, return nullptr if no message is available
+  sem_wait(&m_avail);
 
   // TODO: remove the next message from the queue, return it
   Message *msg = nullptr;
+  msg = m_messages.back();
+  m_messages.pop_back();
   return msg;
 }

@@ -24,25 +24,35 @@
 // Client thread functions
 ////////////////////////////////////////////////////////////////////////
 
-void chat_with_sender(Connection *connection) {
+
+//trminate loop and close client thread if anything fails to send
+void chat_with_sender(Connection *connection, Server *server) {
+  Message message;
+
+  Room *roomObj = NULL;
   while(true) {
-    Message message;
     bool received = connection->receive(message);
-    std::string party;
     if(received) {
-      if(message.tag == TAG_LEAVE) { //leave join quit sendall
-
+      if(message.tag == TAG_LEAVE) { 
+        //if leave, but sender not in a room, it should be an error
+        
       } else if (message.tag == TAG_JOIN) {
-
+        std::string room = message.data;
+        roomObj = server->find_or_create_room(room);
+        //send ok response
+        //look out for error response
       } else if (message.tag == TAG_QUIT) {
 
       } else if (message.tag == TAG_SENDALL) {
-
+        //if sender sends sendall message, but not in a room, that's an error
+        //use broadcast from Room
       }
     }
+  }
 }
 
-void chat_with_receiver(Connection *connection) {
+//terminate loop and close client thread if anything fails, or if quit is received
+void chat_with_receiver(Connection *connection, Server *server) {
   while(true) { //tag join
     Message message;
     bool received = connection->receive(message);
@@ -77,11 +87,11 @@ void *worker(void *arg) {
   //       separate helper functions for each of these possibilities
   //       is a good idea)
   if (message.tag == TAG_RLOGIN) {
-    chat_with_receiver(connection);
+    chat_with_receiver(connection, info->server);
   }
 
   else if (message.tag == TAG_SLOGIN) {
-    chat_with_sender(connection);
+    chat_with_sender(connection, info->server);
   }
 
   connection->close();
@@ -99,7 +109,7 @@ void *worker(void *arg) {
 
 struct ConnInfo {
   int clientfd;
-  Room *room;
+  Server *server;
 };
 
 Server::Server(int port)
@@ -154,7 +164,7 @@ Room *Server::find_or_create_room(const std::string &room_name) {
     m_rooms[room_name] = room;
   }
   return m_rooms[room_name];
-
+  //we need synchronization, since it is called for multiple threads
 }
 
 

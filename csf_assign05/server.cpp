@@ -69,6 +69,11 @@ void *worker(void *arg) {
 // Server member function implementation
 ////////////////////////////////////////////////////////////////////////
 
+struct ConnInfo {
+  int clientfd;
+  Room *room;
+};
+
 Server::Server(int port)
   : m_port(port)
   , m_ssock(-1) {
@@ -107,7 +112,7 @@ void Server::handle_client_requests() {
     info->clientfd = clientfd;
 
     pthread_t thr_id;
-    if (pthread_create(&thr_id, NULL, worker, info)) {
+    if (pthread_create(&thr_id, NULL, worker, info) != 0) {
       std::cout << "Client won't create" << std::endl;
     }
   }
@@ -124,10 +129,7 @@ Room *Server::find_or_create_room(const std::string &room_name) {
 
 }
 
-struct ConnInfo {
-  int clientfd;
-  Room *room;
-};
+
 
 void chat_with_sender(Connection *connection) {
 

@@ -24,6 +24,28 @@
 // Client thread functions
 ////////////////////////////////////////////////////////////////////////
 
+void chat_with_sender(Connection *connection) {
+  while(true) {
+    Message message;
+    bool received = connection->receive(message);
+    std::string party;
+    if(received) {
+      if(message.tag == TAG_DELIVERY) { //leave join quit sendall
+
+      } else if (message.tag == TAG_JOIN) {
+
+      } else if (message.tag == TAG_LEAVE) {
+
+      }
+    }
+}
+
+void chat_with_receiver(Connection *connection) {
+  while(true) { //tag join
+    
+  }
+}
+
 namespace {
 
 void *worker(void *arg) {
@@ -131,19 +153,3 @@ Room *Server::find_or_create_room(const std::string &room_name) {
 
 
 
-void chat_with_sender(Connection *connection) {
-  while(true) {
-    Message message;
-    std::string party;
-    if (connection->receive(message) || message.tag == TAG_QUIT) {
-      break;
-    }
-    if (!connection->communicate(message)) {
-      break;
-    }
-  }
-}
-
-void chat_with_receiver(Connection *connection) {
-  
-}

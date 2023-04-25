@@ -16,6 +16,7 @@ MessageQueue::~MessageQueue() {
 
 void MessageQueue::enqueue(Message *msg) {
   // TODO: put the specified message on the queue
+  
   m_messages.push_front(msg);
   // be sure to notify any thread waiting for a message to be
   // available by calling sem_post

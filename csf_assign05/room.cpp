@@ -27,5 +27,8 @@ void Room::remove_member(User *user) {
 
 void Room::broadcast_message(const std::string &sender_username, const std::string &message_text) {
   // TODO: send a message to every (receiver) User in the room
-  
+  for (User *user: members) {
+    Message *message = new Message(sender_username, message_text);
+    user->mqueue.enqueue(message);
+  }
 }

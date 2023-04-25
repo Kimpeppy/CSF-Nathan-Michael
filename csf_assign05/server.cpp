@@ -27,32 +27,40 @@
 
 //trminate loop and close client thread if anything fails to send
 void chat_with_sender(Connection *connection, Server *server, Message message) {
-
+  std::string username = message.data;
+  User *user = new User(username);
   Room *roomObj = NULL;
   while(true) {
     bool received = connection->receive(message);
     if(received) {
+      // Make the room object null
       if(message.tag == TAG_LEAVE) { 
-        //if leave, but sender not in a room, it should be an error
-        
-      } else if (message.tag == TAG_JOIN) {
-        std::string room = message.data;
-        roomObj = server->find_or_create_room(room);
-
-        //send ok response
+        roomObj->remove_member(user);
+        roomObj = NULL;
         message = Message(TAG_OK, NULL);
         connection->send(message);
-        //look out for error response
-      } else if (message.tag == TAG_QUIT) {
-        message = Message(TAG_ERR, NULL);
+      } 
+      // Find and join room
+      else if (message.tag == TAG_JOIN) {
+        std::string room = message.data;
+        roomObj = server->find_or_create_room(room);
+        roomObj->add_member(user);
+        message = Message(TAG_OK, NULL);
         connection->send(message);
-      } else if (message.tag == TAG_SENDALL) {
-        //if sender sends sendall message, but not in a room, that's an error
+      } 
+      // Exit the loop
+      else if (message.tag == TAG_QUIT) {
+        message = Message(TAG_OK, NULL);
+        connection->send(message);
+        break;
+      } 
+      // Send a message
+      else if (message.tag == TAG_SENDALL) {
         if(roomObj == NULL) {
           message = Message(TAG_ERR, NULL);
           connection->send(message);
         }
-        roomObj->broadcast_message(const std::string &sender_username, const std::string &message_text)
+        roomObj->broadcast_message(username, message.data);
         
       }
     }
@@ -60,13 +68,27 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
 }
 
 //terminate loop and close client thread if anything fails, or if quit is received
-void chat_with_receiver(Connection *connection, Server *server) {
-  while(true) { //tag join
-    Message message;
-    bool received = connection->receive(message);
-    if(received) {
-    //DEQUE AND KEEP GOING/PRINT OUT MESSAGE SOMEHOW
-    }
+void chat_with_receiver(Connection *connection, Server *server, Message message) {
+  std::string username = message.data;
+  User *user = new User(username);
+  Room *roomObj = NULL;
+  // If message failed to receive, error will occur
+  if (!connection->receive(message)) {
+    return;
+  }
+  if (message.tag == TAG_JOIN) {
+    roomObj = server->find_or_create_room(message.data);
+    roomObj->add_member(user);
+    message = Message(TAG_OK, NULL);
+    connection->send(message);
+  }
+  else {
+    message = Message(TAG_ERR, NULL);
+    connection->send(message);
+  }
+  while(true) {
+    Message *output = user->mqueue.dequeue();
+    std::cout << output->tag << ":" << output->data;
   }
 }
 
@@ -87,7 +109,7 @@ void *worker(void *arg) {
   while(!connection->receive(message)) {
 
   }
-  std::string room_name;
+
   
 
   // TODO: depending on whether the client logged in as a sender or
@@ -95,11 +117,11 @@ void *worker(void *arg) {
   //       separate helper functions for each of these possibilities
   //       is a good idea)
   if (message.tag == TAG_RLOGIN) {
-    chat_with_receiver(connection, info->server);
+    chat_with_receiver(connection, info->server, message);
   }
 
   else if (message.tag == TAG_SLOGIN) {
-    chat_with_sender(connection, info->server);
+    chat_with_sender(connection, info->server, message);
   }
 
   connection->close();

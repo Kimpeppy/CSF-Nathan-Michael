@@ -30,11 +30,13 @@ void chat_with_sender(Connection *connection) {
     bool received = connection->receive(message);
     std::string party;
     if(received) {
-      if(message.tag == TAG_DELIVERY) { //leave join quit sendall
+      if(message.tag == TAG_LEAVE) { //leave join quit sendall
 
       } else if (message.tag == TAG_JOIN) {
 
-      } else if (message.tag == TAG_LEAVE) {
+      } else if (message.tag == TAG_QUIT) {
+
+      } else if (message.tag == TAG_SENDALL) {
 
       }
     }
@@ -42,7 +44,11 @@ void chat_with_sender(Connection *connection) {
 
 void chat_with_receiver(Connection *connection) {
   while(true) { //tag join
-    
+    Message message;
+    bool received = connection->receive(message);
+    if(received) {
+    //DEQUE AND KEEP GOING/PRINT OUT MESSAGE SOMEHOW
+    }
   }
 }
 

@@ -26,8 +26,7 @@
 
 
 //trminate loop and close client thread if anything fails to send
-void chat_with_sender(Connection *connection, Server *server) {
-  Message message;
+void chat_with_sender(Connection *connection, Server *server, Message message) {
 
   Room *roomObj = NULL;
   while(true) {
@@ -39,13 +38,22 @@ void chat_with_sender(Connection *connection, Server *server) {
       } else if (message.tag == TAG_JOIN) {
         std::string room = message.data;
         roomObj = server->find_or_create_room(room);
+
         //send ok response
+        message = Message(TAG_OK, NULL);
+        connection->send(message);
         //look out for error response
       } else if (message.tag == TAG_QUIT) {
-
+        message = Message(TAG_ERR, NULL);
+        connection->send(message);
       } else if (message.tag == TAG_SENDALL) {
         //if sender sends sendall message, but not in a room, that's an error
-        //use broadcast from Room
+        if(roomObj == NULL) {
+          message = Message(TAG_ERR, NULL);
+          connection->send(message);
+        }
+        roomObj->broadcast_message(const std::string &sender_username, const std::string &message_text)
+        
       }
     }
   }

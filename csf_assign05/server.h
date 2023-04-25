@@ -17,7 +17,6 @@ public:
 
   Room *find_or_create_room(const std::string &room_name);
 
-
 private:
   // prohibit value semantics
   Server(const Server &);

@@ -55,6 +55,7 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
       else if (message.tag == TAG_JOIN) {
         std::string room = message.data;
         roomObj = server->find_or_create_room(room);
+        std::cout << "reached line 58 of server.cpp\n";
         message.tag = TAG_OK;
         message.data = "Joined the room!";
         connection->send(message);
@@ -101,6 +102,7 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
   if (message.tag == TAG_JOIN) {
     roomObj = server->find_or_create_room(message.data);
     roomObj->add_member(user);
+    std::cout << "reached line 105 of server.cpp\n";
     message.tag = TAG_OK;
     message.data = "Joined the room";
     connection->send(message);
@@ -109,10 +111,14 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
     message.tag = TAG_ERR;
     message.data = "Something went wrong";
     connection->send(message);
+    return;
   }
   while(true) {
     Message *output = user->mqueue.dequeue();
-    std::cout << output->tag << ":" << output->data;
+    if(!connection->send(message)) {
+      roomObj->remove_member(user);
+    }
+    // std::cout << output->tag << ":" << output->data;
   }
 }
 
@@ -134,6 +140,7 @@ void *worker(void *arg) {
   if(message.tag == TAG_RLOGIN || message.tag == TAG_SLOGIN) {
     message.tag = TAG_OK;
     message.data = "Valid login";
+    std::cout << message.tag << std::endl;
     info->conn->send(message);
   }
 
@@ -144,10 +151,12 @@ void *worker(void *arg) {
   //       separate helper functions for each of these possibilities
   //       is a good idea)
   if (message.tag == TAG_RLOGIN) {
+    std::cout << "reached line 153" << std::endl;
     chat_with_receiver(info->conn, info->server, message);
   }
 
   else if (message.tag == TAG_SLOGIN) {
+    std::cout << "reached line 153" << std::endl;
     chat_with_sender(info->conn, info->server, message);
   }
   

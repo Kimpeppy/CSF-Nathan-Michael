@@ -91,7 +91,8 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
         } else {
           std::cout << "here is line 91" << std::endl;
           roomObj->broadcast_message(username, message.data);
-          message = Message(TAG_OK, NULL);
+          message.tag = TAG_OK;
+          message.data = "message sent";
           connection->send(message);
         }
       } else {
@@ -100,7 +101,8 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
         connection->send(message);
       }
     } else {
-      message = Message(TAG_ERR, NULL);
+      message.tag = TAG_ERR;
+      message.data = "Message not received";
       connection->send(message);
     }
   }

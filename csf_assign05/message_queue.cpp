@@ -2,6 +2,7 @@
 #include <ctime>
 #include "guard.h"
 #include "message_queue.h"
+#include <iostream>
 
 MessageQueue::MessageQueue() {
   // TODO: initialize the mutex and the semaphore
@@ -18,6 +19,7 @@ MessageQueue::~MessageQueue() {
 void MessageQueue::enqueue(Message *msg) {
   // TODO: put the specified message on the queue
   Guard g(m_lock);
+  std::cout << "here is line 21" << std::endl;
   m_messages.push_front(msg);
   // be sure to notify any thread waiting for a message to be
   // available by calling sem_post

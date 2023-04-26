@@ -17,6 +17,21 @@
 // Server implementation data types
 ////////////////////////////////////////////////////////////////////////
 
+const std::string WHITESPACE = " \n\r\t\f\v";
+
+std::string ltrim(const std::string &s) {
+  size_t start = s.find_first_not_of(WHITESPACE);
+  return (start == std::string::npos) ? "" : s.substr(start);
+}
+ 
+std::string rtrim(const std::string &s) {
+  size_t end = s.find_last_not_of(WHITESPACE);
+  return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}
+ 
+std::string trim(const std::string &s) {
+  return rtrim(ltrim(s));
+}
 // TODO: add any additional data types that might be helpful
 //       for implementing the Server member functions
 
@@ -55,7 +70,6 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
       else if (message.tag == TAG_JOIN) {
         std::string room = message.data;
         roomObj = server->find_or_create_room(room);
-        std::cout << "reached line 58 of server.cpp\n";
         message.tag = TAG_OK;
         message.data = "Joined the room!";
         connection->send(message);
@@ -74,6 +88,7 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
           message.data = "Tried to sendall while not in a room";
           connection->send(message);
         } else {
+          std::cout << "here is line 91" << std::endl;
           roomObj->broadcast_message(username, message.data);
           message = Message(TAG_OK, NULL);
           connection->send(message);
@@ -99,12 +114,13 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
   if (!connection->receive(message)) {
     return;
   }
+  message.data = trim(message.data);
+  
   if (message.tag == TAG_JOIN) {
     roomObj = server->find_or_create_room(message.data);
     roomObj->add_member(user);
-    std::cout << "reached line 105 of server.cpp\n";
     message.tag = TAG_OK;
-    message.data = "Joined the room";
+    message.data = "Joined " + message.data;
     connection->send(message);
   }
   else {
@@ -136,11 +152,12 @@ void *worker(void *arg) {
   //       TAG_SLOGIN or TAG_RLOGIN), send response
   Message message;
   info->conn->receive(message);
+  Message loginInfo;
   //check tags, if it's RLOGIN or SLOGIN, send response
   if(message.tag == TAG_RLOGIN || message.tag == TAG_SLOGIN) {
+    loginInfo = Message(message.tag, message.data);
     message.tag = TAG_OK;
     message.data = "Valid login";
-    std::cout << message.tag << std::endl;
     info->conn->send(message);
   }
 
@@ -150,14 +167,12 @@ void *worker(void *arg) {
   //       receiver, communicate with the client (implementing
   //       separate helper functions for each of these possibilities
   //       is a good idea)
-  if (message.tag == TAG_RLOGIN) {
-    std::cout << "reached line 153" << std::endl;
-    chat_with_receiver(info->conn, info->server, message);
+  if (loginInfo.tag == TAG_RLOGIN) {
+    chat_with_receiver(info->conn, info->server, loginInfo);
   }
 
-  else if (message.tag == TAG_SLOGIN) {
-    std::cout << "reached line 153" << std::endl;
-    chat_with_sender(info->conn, info->server, message);
+  else if (loginInfo.tag == TAG_SLOGIN) {
+    chat_with_sender(info->conn, info->server, loginInfo);
   }
   
   delete info->conn;
@@ -222,7 +237,8 @@ void Server::handle_client_requests() {
 Room *Server::find_or_create_room(const std::string &room_name) {
   // TODO: return a pointer to the unique Room object representing
   //       the named chat room, creating a new one if necessary
-  if (m_rooms.find(room_name) != m_rooms.end()) {
+
+  if (m_rooms.find(room_name) == m_rooms.end()) {
     Room *room = new Room(room_name);
     m_rooms[room_name] = room;
   }

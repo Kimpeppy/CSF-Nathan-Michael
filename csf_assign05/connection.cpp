@@ -94,9 +94,9 @@ bool Connection::receive(Message &msg) {
   msg.tag = tag;
   msg.data = payload;
 
-  return syn_ack(msg);
+  return true;
    
-  }
+}
 
 bool Connection::syn_ack(Message &msg) {
   if(msg.tag == TAG_OK || msg.tag == TAG_DELIVERY) {

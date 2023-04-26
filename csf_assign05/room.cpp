@@ -4,6 +4,7 @@
 #include "user.h"
 #include "room.h"
 #include <pthread.h>
+#include <iostream>
 
 Room::Room(const std::string &room_name)
   : room_name(room_name) {
@@ -32,6 +33,7 @@ void Room::broadcast_message(const std::string &sender_username, const std::stri
   // TODO: send a message to every (receiver) User in the room
   Guard g(lock);
   for (User *user: members) {
+    std::cout << "here is line 36" << std::endl;
     Message *message = new Message(sender_username, message_text);
     user->mqueue.enqueue(message);
   }

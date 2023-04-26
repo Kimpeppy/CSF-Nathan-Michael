@@ -1,5 +1,6 @@
 #include <cassert>
 #include <ctime>
+#include "guard.h"
 #include "message_queue.h"
 
 MessageQueue::MessageQueue() {
@@ -16,7 +17,7 @@ MessageQueue::~MessageQueue() {
 
 void MessageQueue::enqueue(Message *msg) {
   // TODO: put the specified message on the queue
-  
+  Guard g(m_lock);
   m_messages.push_front(msg);
   // be sure to notify any thread waiting for a message to be
   // available by calling sem_post
@@ -24,6 +25,7 @@ void MessageQueue::enqueue(Message *msg) {
 }
 
 Message *MessageQueue::dequeue() {
+  Guard g(m_lock);
   struct timespec ts;
 
   // get the current time using clock_gettime:

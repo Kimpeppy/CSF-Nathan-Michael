@@ -21,8 +21,8 @@
 //       for implementing the Server member functions
 
 struct ConnInfo {
-  int clientfd;
   Server *server;
+  Connection *conn;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -34,40 +34,57 @@ struct ConnInfo {
 void chat_with_sender(Connection *connection, Server *server, Message message) {
   std::string username = message.data;
   User *user = new User(username);
-  Room *roomObj = NULL;
+  Room *roomObj = nullptr;
   while(true) {
     bool received = connection->receive(message);
     if(received) {
       // Make the room object null
-      if(message.tag == TAG_LEAVE) { 
+      if(message.tag == TAG_LEAVE) {
+        if(roomObj == nullptr) { //what if they try to leave without being in a room
+          message.tag = TAG_ERR;
+          message.data = "Left without being in a room";
+          connection->send(message);
+        } 
         roomObj->remove_member(user);
-        roomObj = NULL;
-        message = Message(TAG_OK, NULL);
+        roomObj = nullptr;
+        message.tag = TAG_OK;
+        message.data = "Left the room!";
         connection->send(message);
       } 
       // Find and join room
       else if (message.tag == TAG_JOIN) {
         std::string room = message.data;
         roomObj = server->find_or_create_room(room);
-        roomObj->add_member(user);
-        message = Message(TAG_OK, NULL);
+        message.tag = TAG_OK;
+        message.data = "Joined the room!";
         connection->send(message);
       } 
       // Exit the loop
       else if (message.tag == TAG_QUIT) {
-        message = Message(TAG_OK, NULL);
+        message.tag = TAG_OK;
+        message.data = "Quit!";
         connection->send(message);
-        break;
+        return;
       } 
       // Send a message
       else if (message.tag == TAG_SENDALL) {
-        if(roomObj == NULL) {
-          message = Message(TAG_ERR, NULL);
+        if(roomObj == nullptr) {
+          message.tag = TAG_ERR;
+          message.data = "Tried to sendall while not in a room";
+          connection->send(message);
+        } else {
+          roomObj->broadcast_message(username, message.data);
+          message = Message(TAG_OK, NULL);
           connection->send(message);
         }
-        roomObj->broadcast_message(username, message.data);
-        
+      } else {
+        message.tag = TAG_ERR;
+        message.data = "Something went wrong";
+        connection->send(message);
       }
+    } else {
+      message = Message(TAG_ERR, NULL);
+      connection->send(message);
     }
   }
 }
@@ -84,11 +101,13 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
   if (message.tag == TAG_JOIN) {
     roomObj = server->find_or_create_room(message.data);
     roomObj->add_member(user);
-    message = Message(TAG_OK, NULL);
+    message.tag = TAG_OK;
+    message.data = "Joined the room";
     connection->send(message);
   }
   else {
-    message = Message(TAG_ERR, NULL);
+    message.tag = TAG_ERR;
+    message.data = "Something went wrong";
     connection->send(message);
   }
   while(true) {
@@ -106,36 +125,38 @@ void *worker(void *arg) {
   //       whatever pointer type describes the object(s) needed
   //       to communicate with a client (sender or receiver)
   struct ConnInfo *info = (struct ConnInfo*) arg;
-  Connection* connection = new Connection(info->clientfd);
 
   // TODO: read login message (should be tagged either with
   //       TAG_SLOGIN or TAG_RLOGIN), send response
   Message message;
-  while(!connection->receive(message)) {
-
+  info->conn->receive(message);
+  //check tags, if it's RLOGIN or SLOGIN, send response
+  if(message.tag == TAG_RLOGIN || message.tag == TAG_SLOGIN) {
+    message.tag = TAG_OK;
+    message.data = "Valid login";
+    info->conn->send(message);
   }
 
-  
+  //ELSE SEND ERROR
 
   // TODO: depending on whether the client logged in as a sender or
   //       receiver, communicate with the client (implementing
   //       separate helper functions for each of these possibilities
   //       is a good idea)
   if (message.tag == TAG_RLOGIN) {
-    chat_with_receiver(connection, info->server, message);
+    chat_with_receiver(info->conn, info->server, message);
   }
 
   else if (message.tag == TAG_SLOGIN) {
-    chat_with_sender(connection, info->server, message);
+    chat_with_sender(info->conn, info->server, message);
   }
-
-  connection->close();
-  free(info);
-
-
+  
+  delete info->conn;
+  delete info; //destructor for connection will be called, destroying the connection
+  // connection->close();
+  // free(info);
   return nullptr;
 }
-
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -177,13 +198,16 @@ void Server::handle_client_requests() {
     }
 
     struct ConnInfo *info = new ConnInfo;
-    info->clientfd = clientfd;
+    info->conn = new Connection(clientfd);
+    info->server = this;
+    //info->clientfd = clientfd;
 
     pthread_t thr_id;
     if (pthread_create(&thr_id, NULL, worker, info) != 0) {
       std::cout << "Client won't create" << std::endl;
     }
   }
+
 }
 
 Room *Server::find_or_create_room(const std::string &room_name) {

@@ -70,6 +70,7 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
       else if (message.tag == TAG_JOIN) {
         std::string room = message.data;
         roomObj = server->find_or_create_room(room);
+        roomObj->add_member(user);
         message.tag = TAG_OK;
         message.data = "Joined the room!";
         connection->send(message);

@@ -34,7 +34,6 @@ void Room::broadcast_message(const std::string &sender_username, const std::stri
   Guard g(lock);
   std::cout << members.size() << std::endl;
   for (User *user: members) {
-    std::cout << "here is line 36" << std::endl;
     Message *message = new Message(sender_username, message_text);
     user->mqueue.enqueue(message);
   }

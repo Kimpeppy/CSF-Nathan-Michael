@@ -10,7 +10,7 @@
 Room::Room(const std::string &room_name)
   : room_name(room_name) {
   // TODO: initialize the mutex
-  pthread_mutex_init(&lock, nullptr);
+  pthread_mutex_init(&lock, NULL);
 }
 
 Room::~Room() {

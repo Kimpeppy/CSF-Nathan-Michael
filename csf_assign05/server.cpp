@@ -59,17 +59,20 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
           message.tag = TAG_ERR;
           message.data = "Left without being in a room";
           connection->send(message);
-        } 
-        roomObj->remove_member(user);
-        roomObj = nullptr;
-        message.tag = TAG_OK;
-        message.data = "Left the room!";
-        connection->send(message);
+        } else {
+          roomObj->remove_member(user);
+          roomObj = nullptr;
+          message.tag = TAG_OK;
+          message.data = "Left the room!";
+          connection->send(message);
+        }
       } 
       // Find and join room
       else if (message.tag == TAG_JOIN) {
         std::string room = message.data;
-        roomObj->remove_member(user);
+        if (roomObj != nullptr) {
+          roomObj->remove_member(user);
+        }
         roomObj = server->find_or_create_room(room);
         roomObj->add_member(user);
         message.tag = TAG_OK;
@@ -81,6 +84,10 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
         message.tag = TAG_OK;
         message.data = "Quit!";
         connection->send(message);
+        if (roomObj != nullptr) {
+          roomObj->remove_member(user);
+        }
+        delete user;
         return;
       } 
       // Send a message
@@ -102,7 +109,7 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
       }
     } else {
       message.tag = TAG_ERR;
-      message.data = "Message not received";
+      message.data = "Invalid tag used";
       connection->send(message);
     }
   }
@@ -115,6 +122,9 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
   Room *roomObj = NULL;
   // If message failed to receive, error will occur
   if (!connection->receive(message)) {
+    Message error_msg;
+    error_msg.tag = TAG_ERR;
+    error_msg.data = "Error receiving message";
     return;
   }
   message.data = trim(message.data);
@@ -140,8 +150,10 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
     if(!connection->send(*output)) {
       roomObj->remove_member(user);
     }
+    delete output;
 
   }
+  delete user;
 }
 
 namespace {
@@ -200,7 +212,7 @@ Server::Server(int port)
   : m_port(port)
   , m_ssock(-1) {
   // TODO: initialize mutex
-  pthread_mutex_init(&m_lock, nullptr);
+  pthread_mutex_init(&m_lock, NULL);
 
 }
 
@@ -225,9 +237,10 @@ void Server::handle_client_requests() {
   // TODO: infinite loop calling accept or Accept, starting a new
   //       pthread for each connected client
   while(true) {
-    int clientfd = Accept(m_ssock, NULL, NULL);
+    int clientfd = accept(m_ssock, nullptr, nullptr);
     if (clientfd < 0) {
       std::cout << "Client won't accept" << std::endl;
+      return;
     }
 
     struct ConnInfo *info = new ConnInfo;
@@ -238,6 +251,7 @@ void Server::handle_client_requests() {
     pthread_t thr_id;
     if (pthread_create(&thr_id, NULL, worker, info) != 0) {
       std::cout << "Client won't create" << std::endl;
+      return;
     }
   }
 

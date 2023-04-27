@@ -73,7 +73,7 @@ bool Connection::receive(Message &msg) {
   // make sure that m_last_result is set appropriately
   char buf[msg.MAX_LEN + 1];
   size_t check = rio_readlineb(&m_fdbuf, buf, sizeof(buf));
-  if (check < 0) {
+  if (check <= 0) {
     m_last_result = EOF_OR_ERROR;
     return false;
   }
@@ -90,6 +90,10 @@ bool Connection::receive(Message &msg) {
 
   std::string tag = bufString.substr(0, colonLocation);
   std::string payload = bufString.substr(colonLocation + 1); //automatically goes to the end
+
+  if (tag.length() == 0 || payload.length() == 0) {
+    return false;
+  }
 
   msg.tag = tag;
   msg.data = payload;

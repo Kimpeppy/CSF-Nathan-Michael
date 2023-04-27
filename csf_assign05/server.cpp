@@ -69,6 +69,7 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
       // Find and join room
       else if (message.tag == TAG_JOIN) {
         std::string room = message.data;
+        roomObj->remove_member(user);
         roomObj = server->find_or_create_room(room);
         roomObj->add_member(user);
         message.tag = TAG_OK;
@@ -89,7 +90,6 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
           message.data = "Tried to sendall while not in a room";
           connection->send(message);
         } else {
-          std::cout << "here is line 91" << std::endl;
           roomObj->broadcast_message(username, message.data);
           message.tag = TAG_OK;
           message.data = "message sent";
@@ -134,10 +134,13 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
   }
   while(true) {
     Message *output = user->mqueue.dequeue();
-    if(!connection->send(message)) {
+    if (output == nullptr) {
+      continue;
+    }
+    if(!connection->send(*output)) {
       roomObj->remove_member(user);
     }
-    // std::cout << output->tag << ":" << output->data;
+
   }
 }
 
@@ -163,6 +166,11 @@ void *worker(void *arg) {
     message.data = "Valid login";
     info->conn->send(message);
   }
+  else {
+    message.tag = TAG_ERR;
+    message.data = "Invalid login";
+    info->conn->send(message);
+  }
 
   //ELSE SEND ERROR
 
@@ -180,8 +188,6 @@ void *worker(void *arg) {
   
   delete info->conn;
   delete info; //destructor for connection will be called, destroying the connection
-  // connection->close();
-  // free(info);
   return nullptr;
 }
 }
@@ -194,13 +200,13 @@ Server::Server(int port)
   : m_port(port)
   , m_ssock(-1) {
   // TODO: initialize mutex
-  int mcreate = pthread_mutex_init(&m_lock, nullptr);
+  pthread_mutex_init(&m_lock, nullptr);
 
 }
 
 Server::~Server() {
   // TODO: destroy mutex
-  int mdestroy = pthread_mutex_destroy(&m_lock);
+  pthread_mutex_destroy(&m_lock);
 }
 
 bool Server::listen() {
@@ -240,13 +246,24 @@ void Server::handle_client_requests() {
 Room *Server::find_or_create_room(const std::string &room_name) {
   // TODO: return a pointer to the unique Room object representing
   //       the named chat room, creating a new one if necessary
+  Guard g(m_lock);
 
-  if (m_rooms.find(room_name) == m_rooms.end()) {
-    Room *room = new Room(room_name);
-    m_rooms[room_name] = room;
+  Room *room;
+  RoomMap::iterator itr;
+
+  std::string room_name_copy = room_name;
+  room_name_copy = trim(room_name_copy);
+
+  itr = m_rooms.find(room_name_copy);
+
+  if (itr == m_rooms.end()) {
+    room = new Room(room_name_copy);
+    m_rooms.insert({room_name_copy, room});
   }
-  return m_rooms[room_name];
-  //we need synchronization, since it is called for multiple threads
+  else {
+    room = itr->second;
+  }
+  return room;
 }
 
 

@@ -104,12 +104,12 @@ void chat_with_sender(Connection *connection, Server *server, Message message) {
         }
       } else {
         message.tag = TAG_ERR;
-        message.data = "Something went wrong";
+        message.data = "Can't recognize tag";
         connection->send(message);
       }
     } else {
       message.tag = TAG_ERR;
-      message.data = "Invalid tag used";
+      message.data = "Receive() failed";
       connection->send(message);
     }
   }
@@ -125,6 +125,7 @@ void chat_with_receiver(Connection *connection, Server *server, Message message)
     Message error_msg;
     error_msg.tag = TAG_ERR;
     error_msg.data = "Error receiving message";
+    connection->send(error_msg);
     return;
   }
   message.data = trim(message.data);
